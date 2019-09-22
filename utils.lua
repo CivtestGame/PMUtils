@@ -93,6 +93,14 @@ function pmutils.search(element, tab)
    return false
 end
 
+function pmutils.different_pos(pos1,pos2)
+   if pos1.x ~= pos2.x then return true
+   elseif pos1.z ~= pos2.z then return true
+   elseif pos1.y ~= pos2.y then return true
+   else return false
+   end
+end
+
 -- Stringifies a vector V, frequently used as a table key
 --[[ USE dump(tab) TO STRINGIFY A TABLE ]]--
 function ptos(x, y, z)
@@ -102,3 +110,27 @@ end
 function vtos(v)
    return tostring(v.x) .. ", " .. tostring(v.y) .. ", " .. tostring(v.z)
 end
+
+local playerMoveCallbacks = {}
+function pmutils.register_player_move(callbackFunction, interval)
+   table.insert( playerMoveCallbacks, callbackFunction)
+   if interval and interval < playerMoveInterval then playerMoveInterval = interval end
+end
+
+local playerLastPos = {}
+local playerMoveInterval = 0.5
+local timer = 0
+-- This can probably be made more eficient
+minetest.register_globalstep(function(dtime)
+   timer = timer + dtime
+   if timer >= playerMoveInterval then
+       for _,player in ipairs(minetest.get_connected_players()) do
+           local lastPos = playerLastPos[player:get_player_name()]
+           if(lastPos and pmutils.different_pos(lastPos, player:get_pos())) then
+               for _,callback in pairs(playerMoveCallbacks) do callback(player,player:get_pos(),lastPos) end
+           end
+           playerLastPos[player:get_player_name()] = player:get_pos()
+       end
+       timer = 0
+   end
+end)
