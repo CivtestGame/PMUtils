@@ -130,7 +130,7 @@ minetest.register_globalstep(function(dtime)
          local playerHistory = playerMoveHistory[player:get_player_name()]
          if not playerHistory then 
             playerHistory = {}
-            table.insert(playerHistory, 1, player.get_pos()) 
+            table.insert(playerHistory, 1, player:get_pos()) 
          end
          local lastPos = playerHistory[1]
             if(lastPos and pmutils.different_pos(lastPos, player:get_pos())) then
@@ -138,6 +138,7 @@ minetest.register_globalstep(function(dtime)
                if table.getn(playerHistory) > playerMoveHistoryLength then table.remove(playerHistory) end
                for _,callback in pairs(playerMoveCallbacks) do callback(player, playerHistory) end
             end
+            playerMoveHistory[player:get_player_name()] = playerHistory
       end
       timer = 0
    end
