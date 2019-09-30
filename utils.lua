@@ -112,25 +112,33 @@ function vtos(v)
 end
 
 local playerMoveCallbacks = {}
-function pmutils.register_player_move(callbackFunction, interval)
+local playerMoveInterval = 0.5
+local playerMoveHistoryLength = 20
+function pmutils.register_player_move(callbackFunction, interval, historyLength)
    table.insert( playerMoveCallbacks, callbackFunction)
    if interval and interval < playerMoveInterval then playerMoveInterval = interval end
+   if historyLength and historyLength > playerMoveHistoryLength then playerMoveHistoryLength = historyLength end
 end
 
-local playerLastPos = {}
-local playerMoveInterval = 0.5
+local playerMoveHistory = {}
 local timer = 0
 -- This can probably be made more eficient
 minetest.register_globalstep(function(dtime)
    timer = timer + dtime
    if timer >= playerMoveInterval then
-       for _,player in ipairs(minetest.get_connected_players()) do
-           local lastPos = playerLastPos[player:get_player_name()]
-           if(lastPos and pmutils.different_pos(lastPos, player:get_pos())) then
-               for _,callback in pairs(playerMoveCallbacks) do callback(player,player:get_pos(),lastPos) end
-           end
-           playerLastPos[player:get_player_name()] = player:get_pos()
-       end
-       timer = 0
+      for _,player in ipairs(minetest.get_connected_players()) do
+         local playerHistory = playerMoveHistory[player:get_player_name()]
+         if not playerHistory then 
+            playerHistory = {}
+            table.insert(playerHistory, 1, player.get_pos()) 
+         end
+         local lastPos = playerHistory[1]
+            if(lastPos and pmutils.different_pos(lastPos, player:get_pos())) then
+               table.insert(playerHistory, 1, player:get_pos())
+               if table.getn(playerHistory) > playerMoveHistoryLength then table.remove(playerHistory) end
+               for _,callback in pairs(playerMoveCallbacks) do callback(player, playerHistory) end
+            end
+      end
+      timer = 0
    end
 end)
