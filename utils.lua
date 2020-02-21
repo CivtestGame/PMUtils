@@ -111,6 +111,17 @@ function vtos(v)
    return tostring(v.x) .. ", " .. tostring(v.y) .. ", " .. tostring(v.z)
 end
 
+function round(x)
+   return x >= 0
+      and math.floor(x + 0.5)
+      or math.ceil(x - 0.5)
+end
+
+function pprintv(v)
+   local nv = vector.apply(v, round)
+   return "(" .. vtos(nv) .. ")"
+end
+
 local playerMoveCallbacks = {}
 local playerMoveInterval = 0.5
 local playerMoveHistoryLength = 20
@@ -128,9 +139,9 @@ minetest.register_globalstep(function(dtime)
    if timer >= playerMoveInterval then
       for _,player in ipairs(minetest.get_connected_players()) do
          local playerHistory = playerMoveHistory[player:get_player_name()]
-         if not playerHistory then 
+         if not playerHistory then
             playerHistory = {}
-            table.insert(playerHistory, 1, player:get_pos()) 
+            table.insert(playerHistory, 1, player:get_pos())
          end
          local lastPos = playerHistory[1]
             if(lastPos and pmutils.different_pos(lastPos, player:get_pos())) then
