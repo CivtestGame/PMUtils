@@ -154,3 +154,23 @@ minetest.register_globalstep(function(dtime)
       timer = 0
    end
 end)
+
+--------------------------------------------------------------------------------
+--
+-- Why does Minetest not give us a way to do this...
+--
+--------------------------------------------------------------------------------
+
+function pmutils.grant_privilege(pname, privname)
+   local privs = core.get_player_privs(pname)
+   privs[privname] = true
+   core.run_priv_callbacks(pname, privname, "", "grant")
+   core.set_player_privs(pname, privs)
+end
+
+function pmutils.revoke_privilege(pname, privname)
+   local privs = core.get_player_privs(pname)
+   privs[privname] = nil
+   core.run_priv_callbacks(pname, privname, "", "revoke")
+   core.set_player_privs(pname, privs)
+end
