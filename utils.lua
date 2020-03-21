@@ -49,6 +49,8 @@ function pmutils.prepare(db, query, ...)
             escaped = "'" .. db:escape(val) .. "'"
          elseif valtype == "number" then
             escaped = db:escape(tostring(val))
+         elseif valtype == "boolean" then
+            escaped = (val and "TRUE") or "FALSE"
          elseif valtype == "nil" then
             escaped = "NULL"
          else
